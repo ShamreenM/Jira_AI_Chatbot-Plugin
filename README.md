@@ -99,9 +99,7 @@ Jira_AI_Chatbot-Plugin/
 
 ---
 ## 🛠 Routing Logic
-
-
-
+[Routing login](query_routing_stepper.html)
 
 ## ⚙️ Setup & Installation
 
