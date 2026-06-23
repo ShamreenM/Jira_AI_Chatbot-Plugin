@@ -1,0 +1,24 @@
+modules:
+  jira:projectPage:
+    - key: jira-chatbot-plugin-hello-world-project-page
+      resource: main
+      resolver:
+        function: resolver
+      title: JIRA AI Chatbot
+  function:
+    - key: resolver
+      handler: index.handler
+resources:
+  - key: main
+    path: static/hello-world/build
+permissions:
+  external:
+    fetch:
+      client:
+        - 'https://*.trycloudflare.com'
+app:
+  runtime:
+    name: nodejs24.x
+    memoryMB: 256
+    architecture: arm64
+  id: ari:cloud:ecosystem::app/0a654bca-bef8-43ac-9f7f-e79011ef194f
