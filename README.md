@@ -226,14 +226,6 @@ forge install         # select Jira → enter your Atlassian site URL
 
 ---
 
-## 👩‍💻 Author
-
-**Shamreen M** — QA Lead | GenAI Enthusiast  
-IBM Certified — Generative AI  
-[GitHub](https://github.com/ShamreenM)
-
----
-
 ## 📄 License
 
 This project is for personal and demonstration purposes.
