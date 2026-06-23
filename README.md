@@ -98,6 +98,10 @@ Jira_AI_Chatbot-Plugin/
 - Cloudflare Tunnel (`cloudflared`) — exposes local FastAPI to Atlassian Cloud
 
 ---
+## 🛠 Routing Logic
+
+
+
 
 ## ⚙️ Setup & Installation
 
