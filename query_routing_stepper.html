@@ -1,0 +1,236 @@
+
+<style>
+.qs-wrap{padding:16px 0;font-family:var(--font-sans)}
+.qs-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}
+.qs-tab{padding:7px 14px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;border:1.5px solid var(--color-border-secondary);color:var(--color-text-secondary);background:var(--color-background-secondary);transition:all .15s}
+.qs-tab.active{border-color:currentColor;color:var(--color-text-primary)}
+.tab-ticket.active{color:#185FA5;border-color:#185FA5;background:#E6F1FB}
+.tab-date.active{color:#854F0B;border-color:#EF9F27;background:#FAEEDA}
+.tab-filter.active{color:#0F6E56;border-color:#1D9E75;background:#E1F5EE}
+.tab-semantic.active{color:#534AB7;border-color:#7F77DD;background:#EEEDFE}
+.tab-analysis.active{color:#993C1D;border-color:#D85A30;background:#FAECE7}
+.qs-panel{display:none}
+.qs-panel.active{display:block}
+.qs-example{font-size:12px;font-style:italic;color:var(--color-text-secondary);margin-bottom:16px;padding:8px 12px;border-left:3px solid var(--color-border-secondary);background:var(--color-background-secondary);border-radius:0 6px 6px 0}
+.qs-steps{display:flex;flex-direction:column;gap:10px}
+.qs-step{display:flex;gap:12px;align-items:flex-start}
+.qs-num{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;margin-top:1px}
+.qs-body{flex:1}
+.qs-step-title{font-size:13px;font-weight:500;color:var(--color-text-primary);margin-bottom:2px}
+.qs-step-sub{font-size:12px;color:var(--color-text-secondary);line-height:1.5}
+.qs-code{font-family:var(--font-mono);font-size:11px;background:var(--color-background-tertiary);border:1px solid var(--color-border-tertiary);border-radius:4px;padding:2px 6px;color:var(--color-text-secondary)}
+.qs-outcome{margin-top:16px;padding:10px 14px;border-radius:8px;font-size:12px;font-weight:500}
+
+.c-blue-num{background:#E6F1FB;color:#185FA5}
+.c-amber-num{background:#FAEEDA;color:#854F0B}
+.c-teal-num{background:#E1F5EE;color:#0F6E56}
+.c-purple-num{background:#EEEDFE;color:#534AB7}
+.c-coral-num{background:#FAECE7;color:#993C1D}
+
+.out-blue{background:#E6F1FB;color:#0C447C;border:1px solid #B5D4F4}
+.out-amber{background:#FAEEDA;color:#633806;border:1px solid #FAC775}
+.out-teal{background:#E1F5EE;color:#085041;border:1px solid #9FE1CB}
+.out-purple{background:#EEEDFE;color:#3C3489;border:1px solid #CECBF6}
+.out-coral{background:#FAECE7;color:#712B13;border:1px solid #F5C4B3}
+</style>
+
+<div class="qs-wrap">
+  <div class="qs-tabs">
+    <button class="qs-tab tab-ticket active" onclick="show('ticket')">Ticket key query</button>
+    <button class="qs-tab tab-date" onclick="show('date')">Date query</button>
+    <button class="qs-tab tab-filter" onclick="show('filter')">Structured filter</button>
+    <button class="qs-tab tab-semantic" onclick="show('semantic')">General semantic</button>
+    <button class="qs-tab tab-analysis" onclick="show('analysis')">Analysis query</button>
+  </div>
+
+  <div id="panel-ticket" class="qs-panel active">
+    <div class="qs-example">e.g. "What is the status of SRCTREEWIN-14037?" or "Tell me about SRCTREEWIN-123"</div>
+    <div class="qs-steps">
+      <div class="qs-step">
+        <div class="qs-num c-blue-num">1</div>
+        <div class="qs-body">
+          <div class="qs-step-title">Regex detection</div>
+          <div class="qs-step-sub">Pattern <span class="qs-code">[A-Z]+-\d+</span> is matched against the query. If found, the ticket key is extracted (e.g. <span class="qs-code">SRCTREEWIN-14037</span>).</div>
+        </div>
+      </div>
+      <div class="qs-step">
+        <div class="qs-num c-blue-num">2</div>
+        <div class="qs-body">
+          <div class="qs-step-title">Chroma metadata filter lookup</div>
+          <div class="qs-step-sub"><span class="qs-code">vectorstore.similarity_search(query="", filter={"issue_key": "SRCTREEWIN-14037"}, k=5)</span> — searches by exact metadata match, no embedding comparison needed.</div>
+        </div>
+      </div>
+      <div class="qs-step">
+        <div class="qs-num c-blue-num">3</div>
+        <div class="qs-body">
+          <div class="qs-step-title">Context build + LLM</div>
+          <div class="qs-step-sub">Matched docs are formatted into a structured context (Issue Key, Type, Status, Priority, Description…) and passed to Gemini in extraction mode prompt.</div>
+        </div>
+      </div>
+    </div>
+    <div class="qs-outcome out-blue">Result: Direct ticket details — status, priority, description, resolution — answered in one shot with no semantic search.</div>
+  </div>
+
+  <div id="panel-date" class="qs-panel">
+    <div class="qs-example">e.g. "Show issues updated on 15/Jan/2024" or "What was created on 01/Mar/2023?"</div>
+    <div class="qs-steps">
+      <div class="qs-step">
+        <div class="qs-num c-amber-num">1</div>
+        <div class="qs-body">
+          <div class="qs-step-title">Date pattern detection</div>
+          <div class="qs-step-sub">Regex <span class="qs-code">\d{1,2}/[A-Za-z]{3}/\d{4}</span> extracts the date string (e.g. <span class="qs-code">15/Jan/2024</span>) from the query.</div>
+        </div>
+      </div>
+      <div class="qs-step">
+        <div class="qs-num c-amber-num">2</div>
+        <div class="qs-body">
+          <div class="qs-step-title">Date index cache check</div>
+          <div class="qs-step-sub">If <span class="qs-code">_date_index_cache</span> is populated (from a previous date query this session), it is reused instantly. If not, the full collection scan runs once and is cached.</div>
+        </div>
+      </div>
+      <div class="qs-step">
+        <div class="qs-num c-amber-num">3</div>
+        <div class="qs-body">
+          <div class="qs-step-title">Full collection scan</div>
+          <div class="qs-step-sub">Every record's <span class="qs-code">Created</span>, <span class="qs-code">Updated</span>, and page content is checked for the target date string. Matching <span class="qs-code">issue_key</span> values are collected.</div>
+        </div>
+      </div>
+      <div class="qs-step">
+        <div class="qs-num c-amber-num">4</div>
+        <div class="qs-body">
+          <div class="qs-step-title">Return matched keys</div>
+          <div class="qs-step-sub">Matched issue keys are returned directly as a sorted list — no LLM call needed for this path.</div>
+        </div>
+      </div>
+    </div>
+    <div class="qs-outcome out-amber">Result: Sorted list of issue keys that had activity on the given date. Fast after first call due to in-memory caching.</div>
+  </div>
+
+  <div id="panel-filter" class="qs-panel">
+    <div class="qs-example">e.g. "List all In Progress tickets" or "Show High priority bugs" or "How many Fixed vs Duplicate tickets?"</div>
+    <div class="qs-steps">
+      <div class="qs-step">
+        <div class="qs-num c-teal-num">1</div>
+        <div class="qs-body">
+          <div class="qs-step-title">Structured filter detection</div>
+          <div class="qs-step-sub"><span class="qs-code">detect_structured_filter()</span> checks the query for known values across 4 dimensions — Status, Priority, Resolution, Severity — using word-boundary regex to avoid false matches (e.g. "High" inside "Highest").</div>
+        </div>
+      </div>
+      <div class="qs-step">
+        <div class="qs-num c-teal-num">2</div>
+        <div class="qs-body">
+          <div class="qs-step-title">Exact count injection</div>
+          <div class="qs-step-sub">For each matched value, <span class="qs-code">vectorstore.get(where=single_filter)</span> fetches the real count from the full dataset. These counts are prepended to the LLM context so it sees actual numbers, not estimates.</div>
+        </div>
+      </div>
+      <div class="qs-step">
+        <div class="qs-num c-teal-num">3</div>
+        <div class="qs-body">
+          <div class="qs-step-title">Chroma $where filter search</div>
+          <div class="qs-step-sub"><span class="qs-code">vectorstore.similarity_search(query="", filter=filter_dict, k=200)</span> — pulls up to 200 matching tickets directly via metadata, sorted by most recently updated.</div>
+        </div>
+      </div>
+      <div class="qs-step">
+        <div class="qs-num c-teal-num">4</div>
+        <div class="qs-body">
+          <div class="qs-step-title">Top 25 + LLM extraction prompt</div>
+          <div class="qs-step-sub">The 25 most recently updated tickets are passed to Gemini with the extraction mode prompt. The exact counts prefix ensures the LLM answers count/comparison questions accurately.</div>
+        </div>
+      </div>
+    </div>
+    <div class="qs-outcome out-teal">Result: Accurate ticket lists and counts for status/priority/resolution/severity queries — no fuzzy matching, no hallucinated numbers.</div>
+  </div>
+
+  <div id="panel-semantic" class="qs-panel">
+    <div class="qs-example">e.g. "Show unresolved bugs with low priority" or "Find tickets about authentication failures"</div>
+    <div class="qs-steps">
+      <div class="qs-step">
+        <div class="qs-num c-purple-num">1</div>
+        <div class="qs-body">
+          <div class="qs-step-title">Multi-query expansion</div>
+          <div class="qs-step-sub">Gemini rewrites the original query into 3 reformulated search queries focused on unresolved tickets, backlog spillover, pending tasks — broadening recall.</div>
+        </div>
+      </div>
+      <div class="qs-step">
+        <div class="qs-num c-purple-num">2</div>
+        <div class="qs-body">
+          <div class="qs-step-title">Hybrid search per query</div>
+          <div class="qs-step-sub">For each expanded query: Dense retrieval (ChromaDB top 20, weight 0.7) + Sparse retrieval (BM25 top 20, weight 0.3) are combined via reciprocal rank fusion. Top 40 docs returned per query.</div>
+        </div>
+      </div>
+      <div class="qs-step">
+        <div class="qs-num c-purple-num">3</div>
+        <div class="qs-body">
+          <div class="qs-step-title">Dynamic Top-K filtering</div>
+          <div class="qs-step-sub">Docs below score threshold (0.2 for general, 0.05 for analytical) are dropped. Max 10 kept per query. All results are pooled across the 3 queries.</div>
+        </div>
+      </div>
+      <div class="qs-step">
+        <div class="qs-num c-purple-num">4</div>
+        <div class="qs-body">
+          <div class="qs-step-title">Deduplication</div>
+          <div class="qs-step-sub">Duplicate docs (same <span class="qs-code">page_content</span>) are removed using a dict keyed on content. Only unique docs proceed.</div>
+        </div>
+      </div>
+      <div class="qs-step">
+        <div class="qs-num c-purple-num">5</div>
+        <div class="qs-body">
+          <div class="qs-step-title">Cross-encoder reranking</div>
+          <div class="qs-step-sub"><span class="qs-code">BAAI/bge-reranker-base</span> scores every (query, doc) pair. Top 5 highest-scoring docs are selected for the final context.</div>
+        </div>
+      </div>
+      <div class="qs-step">
+        <div class="qs-num c-purple-num">6</div>
+        <div class="qs-body">
+          <div class="qs-step-title">LLM extraction prompt</div>
+          <div class="qs-step-sub">Top 5 docs passed to Gemini with strict "answer only from context" extraction prompt.</div>
+        </div>
+      </div>
+    </div>
+    <div class="qs-outcome out-purple">Result: Semantically relevant tickets retrieved even when query words don't appear verbatim in issue descriptions.</div>
+  </div>
+
+  <div id="panel-analysis" class="qs-panel">
+    <div class="qs-example">e.g. "Why are so many tickets stuck in Needs Triage?" or "Give me an analysis of high severity bugs"</div>
+    <div class="qs-steps">
+      <div class="qs-step">
+        <div class="qs-num c-coral-num">1</div>
+        <div class="qs-body">
+          <div class="qs-step-title">Analytical intent detection</div>
+          <div class="qs-step-sub">Keywords <span class="qs-code">why</span>, <span class="qs-code">reason</span>, <span class="qs-code">analysis</span> in the query trigger analysis mode. Structured filter is skipped entirely — even if status/priority words are present.</div>
+        </div>
+      </div>
+      <div class="qs-step">
+        <div class="qs-num c-coral-num">2</div>
+        <div class="qs-body">
+          <div class="qs-step-title">Multi-query + hybrid search (lower threshold)</div>
+          <div class="qs-step-sub">Same hybrid search path as semantic, but Dynamic Top-K threshold drops to 0.05 — casts a wider net to gather more contextual evidence for the analysis.</div>
+        </div>
+      </div>
+      <div class="qs-step">
+        <div class="qs-num c-coral-num">3</div>
+        <div class="qs-body">
+          <div class="qs-step-title">Cross-encoder reranking → top 5</div>
+          <div class="qs-step-sub">Same reranking step as semantic path.</div>
+        </div>
+      </div>
+      <div class="qs-step">
+        <div class="qs-num c-coral-num">4</div>
+        <div class="qs-body">
+          <div class="qs-step-title">Anti-hallucination analysis prompt</div>
+          <div class="qs-step-sub">Gemini is instructed to analyse using ONLY the 8 available fields (Issue Key, Type, Status, Priority, Resolution, Severity, Created, Updated, Description). If the question asks about sprints, velocity, or story points — not tracked fields — the model must say so explicitly instead of inferring.</div>
+        </div>
+      </div>
+    </div>
+    <div class="qs-outcome out-coral">Result: Grounded pattern analysis — root cause, trends, frequency — without fabricating data that isn't in the dataset.</div>
+  </div>
+</div>
+
+<script>
+function show(id) {
+  document.querySelectorAll('.qs-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.qs-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('panel-' + id).classList.add('active');
+  event.target.classList.add('active');
+}
+</script>
