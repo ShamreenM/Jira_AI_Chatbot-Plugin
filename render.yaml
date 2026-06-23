@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: jira-chatbot-api
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn api:app --host 0.0.0.0 --port 8000
+    envVars:
+      - key: GOOGLE_API_KEY
+        sync: false
